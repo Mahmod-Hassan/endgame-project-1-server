@@ -17,8 +17,8 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 async function run() {
     const postCollection = client.db('endGame').collection('posts');
     const userCollection = client.db('endGame').collection('users');
-    const commentCollection = client.db('endGame').collection('comments');
-    const userInfoCollection = client.db('endGame').collection('userInfo');
+    const commentCollection = client.db('endGame').collection('comment');
+
 
     try {
         app.post('/post', async (req, res) => {
@@ -26,17 +26,16 @@ async function run() {
             const result = await postCollection.insertOne(post);
             res.send(result);
         })
-        // this put methos has some problem i will fixed it later
-        // this put methos has some problem i will fixed it later
-        // this put methos has some problem i will fixed it later
+
         app.put('/post/:id', async (req, res) => {
             const id = req.params.id;
+            const one = req.body['loveReact'];
             const filter = { _id: ObjectId(id) };
             const options = { upsert: true };
             const post = await postCollection.findOne(filter);
             let loveReact;
-            if (post.loveReact) {
-                loveReact = post[loveReact] + 1;
+            if (post?.loveReact) {
+                loveReact = post['loveReact'] + one;
 
             } else {
                 loveReact = 1;
@@ -66,15 +65,27 @@ async function run() {
             const result = await userCollection.updateOne(filter, updateDoc, options);
             res.send(result);
         })
-        app.post('/user', async (req, res) => {
-            const user = req.body;
-            const result = await userCollection.insertOne(user);
+        app.put('/user/:uid', async (req, res) => {
+            const userInfo = req.body;
+            console.log(userInfo);
+            const uid = req.params.uid;
+            const options = { upsert: true };
+            const filter = { uid: uid };
+            const updateDoc = {
+                $set: userInfo
+            }
+            const result = await userCollection.updateOne(filter, updateDoc, options);
             res.send(result);
+        })
+        app.get('/user/:uid', async (req, res) => {
+            const uid = req.params.uid;
+            const query = { uid: uid };
+            const users = await userCollection.findOne(query);
+            res.send(users);
         })
 
         app.post('/comment', async (req, res) => {
             const comment = req.body;
-            console.log(comment);
             const result = await commentCollection.insertOne(comment);
             res.send(result);
         })
@@ -89,6 +100,7 @@ async function run() {
             const topPost = await postCollection.find(query).sort({ 'loveReact': -1 }).limit(3).toArray();
             res.send(topPost);
         })
+
     }
     finally {
         // no action 
