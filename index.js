@@ -67,7 +67,6 @@ async function run() {
         })
         app.put('/user/:uid', async (req, res) => {
             const userInfo = req.body;
-            console.log(userInfo);
             const uid = req.params.uid;
             const options = { upsert: true };
             const filter = { uid: uid };
